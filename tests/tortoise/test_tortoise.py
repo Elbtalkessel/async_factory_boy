@@ -12,16 +12,19 @@ class TestSQLAlchemyPkSequence:
     def setup(self):
         StandardFactory.reset_sequence(1)
 
+    @pytest.mark.asyncio
     async def test_pk_first(self):
         std = await StandardFactory.build()
         assert 'foo1' == std.foo
 
+    @pytest.mark.asyncio
     async def test_pk_many(self):
         std1 = await StandardFactory.build()
         std2 = await StandardFactory.build()
         assert 'foo1' == std1.foo
         assert 'foo2' == std2.foo
 
+    @pytest.mark.asyncio
     async def test_pk_creation(self):
         std1 = await StandardFactory.create()
         assert 'foo1' == std1.foo
@@ -32,6 +35,7 @@ class TestSQLAlchemyPkSequence:
         assert 'foo0' == std2.foo
         assert 0 == std2.id
 
+    @pytest.mark.asyncio
     async def test_pk_force_value(self):
         std1 = await StandardFactory.create(id=10)
         assert 'foo1' == std1.foo  # sequence and pk are unrelated
@@ -48,11 +52,13 @@ class TestSQLAlchemyNonIntegerPk:
     def setup(self):
         yield
         NonIntegerPkFactory.reset_sequence()
-
+    
+    @pytest.mark.asyncio
     async def test_first(self):
         nonint = await NonIntegerPkFactory.build()
         assert 'foo0' == nonint.id
 
+    @pytest.mark.asyncio
     async def test_many(self):
         nonint1 = await NonIntegerPkFactory.build()
         nonint2 = await NonIntegerPkFactory.build()
@@ -60,6 +66,7 @@ class TestSQLAlchemyNonIntegerPk:
         assert 'foo0' == nonint1.id
         assert 'foo1' == nonint2.id
 
+    @pytest.mark.asyncio
     async def test_creation(self):
         nonint1 = await NonIntegerPkFactory.create()
         assert 'foo0' == nonint1.id
@@ -68,6 +75,7 @@ class TestSQLAlchemyNonIntegerPk:
         nonint2 = await NonIntegerPkFactory.build()
         assert 'foo0' == nonint2.id
 
+    @pytest.mark.asyncio
     async def test_force_pk(self):
         nonint1 = await NonIntegerPkFactory.create(id='foo10')
         assert 'foo10' == nonint1.id
@@ -78,6 +86,7 @@ class TestSQLAlchemyNonIntegerPk:
 
 
 class TestSQLAlchemyNoSession:
+    @pytest.mark.asyncio
     async def test_build_does_not_raises_exception_when_no_session_was_set(self):
         NoSessionFactory.reset_sequence()  # Make sure we start at test ID 0
 
@@ -91,6 +100,8 @@ class TestNameConflict:
     """Regression test for `TypeError: _save() got multiple values for argument 'session'`
     See #775.
     """
+
+    @pytest.mark.asyncio
     async def test_no_name_conflict_on_save(self):
         class SpecialFieldWithSaveFactory(AsyncTortoiseFactory):
             class Meta:
@@ -102,6 +113,7 @@ class TestNameConflict:
         saved_child = await SpecialFieldWithSaveFactory()
         assert saved_child.session == ""
 
+    @pytest.mark.asyncio
     async def test_no_name_conflict_on_get_or_create(self):
         class SpecialFieldWithGetOrCreateFactory(AsyncTortoiseFactory):
             class Meta:

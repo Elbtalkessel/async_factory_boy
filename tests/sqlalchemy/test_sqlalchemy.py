@@ -22,16 +22,19 @@ class TestSQLAlchemyPkSequence:
     def setup(self):
         StandardFactory.reset_sequence(1)
 
+    @pytest.mark.asyncio
     async def test_pk_first(self):
         std = StandardFactory.build()
         assert 'foo1' == std.foo
 
+    @pytest.mark.asyncio
     async def test_pk_many(self):
         std1 = StandardFactory.build()
         std2 = StandardFactory.build()
         assert 'foo1' == std1.foo
         assert 'foo2' == std2.foo
 
+    @pytest.mark.asyncio
     async def test_pk_creation(self):
         std1 = await StandardFactory.create()
         assert 'foo1' == std1.foo
@@ -42,6 +45,7 @@ class TestSQLAlchemyPkSequence:
         assert 'foo0' == std2.foo
         assert 0 == std2.id
 
+    @pytest.mark.asyncio
     async def test_pk_force_value(self):
         std1 = await StandardFactory.create(id=10)
         assert 'foo1' == std1.foo  # sequence and pk are unrelated
@@ -54,15 +58,18 @@ class TestSQLAlchemyPkSequence:
 
 
 class TestSQLAlchemyGetOrCreate:
+    @pytest.mark.asyncio
     async def test_simple_call(self):
         obj1 = await WithGetOrCreateFieldFactory(foo='foo1')
         obj2 = await WithGetOrCreateFieldFactory(foo='foo1')
         assert obj1 == obj2
 
+    @pytest.mark.asyncio
     async def test_missing_arg(self):
         with pytest.raises(FactoryError):
             await MultifieldModelFactory()
 
+    @pytest.mark.asyncio
     async def test_multicall(self, db_session):
         objs = await MultifieldModelFactory.create_batch(
             6,
@@ -76,16 +83,19 @@ class TestSQLAlchemyGetOrCreate:
 
 
 class TestMultipleGetOrCreateFields:
+    @pytest.mark.asyncio
     async def test_one_defined(self):
         obj1 = await WithMultipleGetOrCreateFieldsFactory()
         obj2 = await WithMultipleGetOrCreateFieldsFactory(slug=obj1.slug)
         assert obj1 == obj2
 
+    @pytest.mark.asyncio
     async def test_both_defined(self):
         obj1 = await WithMultipleGetOrCreateFieldsFactory()
         with pytest.raises(sqlalchemy.exc.IntegrityError):
             await WithMultipleGetOrCreateFieldsFactory(slug=obj1.slug, text="alt")
 
+    @pytest.mark.asyncio
     async def test_unique_field_not_in_get_or_create(self):
         await WithMultipleGetOrCreateFieldsFactory(title='Title')
         with pytest.raises(sqlalchemy.exc.IntegrityError):
@@ -98,17 +108,19 @@ class TestSQLAlchemyNonIntegerPk:
         yield
         NonIntegerPkFactory.reset_sequence()
 
-    async def test_first(self):
+    def test_first(self):
         nonint = NonIntegerPkFactory.build()
         assert 'foo0' == nonint.id
+    
 
-    async def test_many(self):
+    def test_many(self):
         nonint1 = NonIntegerPkFactory.build()
         nonint2 = NonIntegerPkFactory.build()
 
         assert 'foo0' == nonint1.id
         assert 'foo1' == nonint2.id
 
+    @pytest.mark.asyncio
     async def test_creation(self):
         nonint1 = await NonIntegerPkFactory.create()
         assert 'foo0' == nonint1.id
@@ -117,6 +129,7 @@ class TestSQLAlchemyNonIntegerPk:
         nonint2 = NonIntegerPkFactory.build()
         assert 'foo0' == nonint2.id
 
+    @pytest.mark.asyncio
     async def test_force_pk(self):
         nonint1 = await NonIntegerPkFactory.create(id='foo10')
         assert 'foo10' == nonint1.id
@@ -127,7 +140,7 @@ class TestSQLAlchemyNonIntegerPk:
 
 
 class TestSQLAlchemyNoSession:
-    async def test_build_does_not_raises_exception_when_no_session_was_set(self):
+    def test_build_does_not_raises_exception_when_no_session_was_set(self):
         NoSessionFactory.reset_sequence()  # Make sure we start at test ID 0
 
         inst0 = NoSessionFactory.build()
@@ -140,6 +153,7 @@ class TestNameConflict:
     """Regression test for `TypeError: _save() got multiple values for argument 'session'`
     See #775.
     """
+    @pytest.mark.asyncio
     async def test_no_name_conflict_on_save(self):
         class SpecialFieldWithSaveFactory(AsyncSQLAlchemyFactory):
             class Meta:
@@ -152,6 +166,7 @@ class TestNameConflict:
         saved_child = await SpecialFieldWithSaveFactory()
         assert saved_child.session == ""
 
+    @pytest.mark.asyncio
     async def test_no_name_conflict_on_get_or_create(self):
         class SpecialFieldWithGetOrCreateFactory(AsyncSQLAlchemyFactory):
             class Meta:

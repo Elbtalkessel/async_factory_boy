@@ -1,13 +1,15 @@
 import asyncio
 import inspect
 from inspect import isawaitable
-from typing import Any, Optional
+from typing import Any, Optional, List, TypeVar
 
 from factory import BUILD_STRATEGY, errors, Factory, FactoryError
 from factory.alchemy import SQLAlchemyOptions
-from factory.builder import (BuildStep, DeclarationSet, parse_declarations, Resolver, StepBuilder)
+from factory.builder import BuildStep, DeclarationSet, parse_declarations, Resolver, StepBuilder
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
+
+_T = TypeVar("_T")
 
 
 class AsyncResolver(Resolver):
@@ -81,8 +83,7 @@ class AsyncStepBuilder(StepBuilder):
         postgen_results = {}
         for declaration_name in post.sorted():
             declaration = post[declaration_name]
-            postgen_results[
-                declaration_name] = declaration.declaration.evaluate_post(
+            postgen_results[declaration_name] = declaration.declaration.evaluate_post(
                 instance=instance,
                 step=step,
                 overrides=declaration.context,
@@ -95,7 +96,7 @@ class AsyncStepBuilder(StepBuilder):
         return instance
 
 
-class AsyncSQLAlchemyFactory(Factory):
+class AsyncSQLAlchemyFactory(Factory[_T]):
     _options_class = SQLAlchemyOptions
 
     @classmethod
@@ -123,7 +124,7 @@ class AsyncSQLAlchemyFactory(Factory):
         return [await cls.build(**kwargs) for _ in range(size)]
 
     @classmethod
-    async def create(cls, **kwargs):
+    async def create(cls, **kwargs) -> _T:
         session_factory = cls._meta.sqlalchemy_session_factory
         if session_factory:
             cls._meta.sqlalchemy_session = session_factory()
@@ -153,7 +154,7 @@ class AsyncSQLAlchemyFactory(Factory):
         return asyncio.create_task(maker_coroutine())
 
     @classmethod
-    async def create_batch(cls, size, **kwargs):
+    async def create_batch(cls, size, **kwargs) -> List[_T]:
         return [await cls.create(**kwargs) for _ in range(size)]
 
     @classmethod
@@ -165,8 +166,8 @@ class AsyncSQLAlchemyFactory(Factory):
             if field not in kwargs:
                 raise FactoryError(
                     "sqlalchemy_get_or_create - "
-                    "Unable to find initialization value for '%s' in factory %s" %
-                    (field, cls.__name__))
+                    "Unable to find initialization value for '%s' in factory %s" % (field, cls.__name__)
+                )
             key_fields[field] = kwargs.pop(field)
 
         obj = (await session.execute(select(model_class).filter_by(*args, **key_fields))).scalars().first()
@@ -184,10 +185,10 @@ class AsyncSQLAlchemyFactory(Factory):
                 if get_or_create_params:
                     try:
                         obj = (
-                            await session
-                            .execute(select(model_class)
-                            .filter_by(**get_or_create_params))
-                        ).scalars().one()
+                            (await session.execute(select(model_class).filter_by(**get_or_create_params)))
+                            .scalars()
+                            .one()
+                        )
                     except NoResultFound:
                         # Original params are not a valid lookup and triggered a create(),
                         # that resulted in an IntegrityError.

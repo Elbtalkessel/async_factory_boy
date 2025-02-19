@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, List, TypeVar
+from typing import Any, Generic, List, TypeVar
 
 import factory
 from factory import enums
@@ -8,7 +8,7 @@ from factory.builder import BuildStep, StepBuilder, parse_declarations
 _T = TypeVar("_T", bound=factory.Factory)
 
 
-class AsyncTortoiseFactory(factory.Factory[_T]):
+class AsyncTortoiseFactory(factory.Factory[_T], Generic[_T]):
     @classmethod
     async def _generate(cls, strategy, params):
         if cls._meta.abstract:

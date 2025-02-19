@@ -4,9 +4,9 @@ import sqlalchemy
 from factory import FactoryError, Iterator
 
 from async_factory_boy.factory.sqlalchemy import AsyncSQLAlchemyFactory
-
 from .conftest import sc_session
 from .factory import (
+    ChildModelWithSelfAttributeFactory,
     MultifieldModelFactory,
     NonIntegerPkFactory,
     NoSessionFactory,
@@ -25,15 +25,22 @@ class TestSQLAlchemyPkSequence:
 
     @pytest.mark.asyncio
     async def test_pk_first(self):
-        std = StandardFactory.build()
+        std = await StandardFactory.build()
         assert "foo1" == std.foo
 
     @pytest.mark.asyncio
     async def test_pk_many(self):
-        std1 = StandardFactory.build()
-        std2 = StandardFactory.build()
+        std1 = await StandardFactory.build()
+        std2 = await StandardFactory.build()
         assert "foo1" == std1.foo
         assert "foo2" == std2.foo
+
+    @pytest.mark.asyncio
+    async def test_pk_many_batch(self):
+        stds = await StandardFactory.build_batch(3)
+        assert "foo1" == stds[0].foo
+        assert "foo2" == stds[1].foo
+        assert "foo3" == stds[2].foo
 
     @pytest.mark.asyncio
     async def test_pk_creation(self):
@@ -45,6 +52,13 @@ class TestSQLAlchemyPkSequence:
         std2 = await StandardFactory.create()
         assert "foo0" == std2.foo
         assert 0 == std2.id
+
+    @pytest.mark.asyncio
+    async def test_pk_creation_batch(self):
+        stds = await StandardFactory.create_batch(3)
+        assert "foo1" == stds[0].foo
+        assert "foo2" == stds[1].foo
+        assert "foo3" == stds[2].foo
 
     @pytest.mark.asyncio
     async def test_pk_force_value(self):
@@ -113,13 +127,15 @@ class TestSQLAlchemyNonIntegerPk:
         yield
         NonIntegerPkFactory.reset_sequence()
 
-    def test_first(self):
-        nonint = NonIntegerPkFactory.build()
+    @pytest.mark.asyncio
+    async def test_first(self):
+        nonint = await NonIntegerPkFactory.build()
         assert "foo0" == nonint.id
 
-    def test_many(self):
-        nonint1 = NonIntegerPkFactory.build()
-        nonint2 = NonIntegerPkFactory.build()
+    @pytest.mark.asyncio
+    async def test_many(self):
+        nonint1 = await NonIntegerPkFactory.build()
+        nonint2 = await NonIntegerPkFactory.build()
 
         assert "foo0" == nonint1.id
         assert "foo1" == nonint2.id
@@ -130,7 +146,7 @@ class TestSQLAlchemyNonIntegerPk:
         assert "foo0" == nonint1.id
 
         NonIntegerPkFactory.reset_sequence()
-        nonint2 = NonIntegerPkFactory.build()
+        nonint2 = await NonIntegerPkFactory.build()
         assert "foo0" == nonint2.id
 
     @pytest.mark.asyncio
@@ -144,11 +160,12 @@ class TestSQLAlchemyNonIntegerPk:
 
 
 class TestSQLAlchemyNoSession:
-    def test_build_does_not_raises_exception_when_no_session_was_set(self):
+    @pytest.mark.asyncio
+    async def test_build_does_not_raises_exception_when_no_session_was_set(self):
         NoSessionFactory.reset_sequence()  # Make sure we start at test ID 0
 
-        inst0 = NoSessionFactory.build()
-        inst1 = NoSessionFactory.build()
+        inst0 = await NoSessionFactory.build()
+        inst1 = await NoSessionFactory.build()
         assert inst0.id == 0
         assert inst1.id == 1
 
@@ -212,3 +229,16 @@ class TestSQLAlchemyWithSessionGetterPkSequence:
         std2 = await SessionGetterFactory.create()
         assert "foo0" == std2.foo  # Sequence doesn't care about pk
         assert 0 == std2.id
+
+
+class TestChildModelWithSelfAttributeFactory:
+    @pytest.mark.asyncio
+    async def test_subfactory(self):
+        child = await ChildModelWithSelfAttributeFactory.create()
+
+        assert child.id is not None
+        assert child.name is not None
+        assert child.parent_id is not None
+        assert child.parent is not None
+        assert child.parent.id is not None
+        assert child.parent.name is not None

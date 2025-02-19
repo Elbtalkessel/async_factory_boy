@@ -1,10 +1,11 @@
 import inspect
-from typing import List, TypeVar
+from typing import Any, List, TypeVar
 
 import factory
+from factory import enums
 from factory.builder import BuildStep, StepBuilder, parse_declarations
 
-_T = TypeVar("_T")
+_T = TypeVar("_T", bound=factory.Factory)
 
 
 class AsyncTortoiseFactory(factory.Factory[_T]):
@@ -21,18 +22,18 @@ class AsyncTortoiseFactory(factory.Factory[_T]):
         return await step.build()
 
     @classmethod
-    async def _create(cls, model_class, *args, **kwargs):
+    async def _create(cls, model_class: type[_T], *args: Any, **kwargs: Any) -> _T:
         for key, value in kwargs.items():
             if inspect.isawaitable(value):
                 kwargs[key] = await value
         return await model_class.create(*args, **kwargs)
 
     @classmethod
-    async def create_batch(cls, size, **kwargs) -> List[_T]:
+    async def create_batch(cls, size: int, **kwargs: Any) -> List[_T]:
         return [await cls.create(**kwargs) for _ in range(size)]
 
     @classmethod
-    async def _build(cls, model_class, *args, **kwargs):
+    async def _build(cls, model_class: type[_T], *args: Any, **kwargs: Any):
         """Actually build an instance of the model_class.
 
         Customization point, will be called once the full set of args and kwargs
@@ -50,6 +51,14 @@ class AsyncTortoiseFactory(factory.Factory[_T]):
                 await instance.save()
                 kwargs[key] = instance
         return model_class(*args, **kwargs)
+
+    @classmethod
+    async def create(cls, **kwargs: Any) -> _T:
+        """
+        Create an instance of the associated class, with overridden attrs.
+        The instance will be saved and persisted in the appropriate datastore.
+        """
+        return await cls._generate(enums.CREATE_STRATEGY, kwargs)
 
 
 class AsyncStepBuilder(StepBuilder):

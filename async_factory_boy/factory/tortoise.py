@@ -1,14 +1,15 @@
 import inspect
-from typing import Any, Generic, List, TypeVar
+from typing import Any, List, Type, TypeVar
 
 import factory
 from factory import enums
 from factory.builder import BuildStep, StepBuilder, parse_declarations
+from tortoise.models import Model
 
-_T = TypeVar("_T", bound=factory.Factory)
+_T = TypeVar("_T", bound=Model)
 
 
-class AsyncTortoiseFactory(factory.Factory[_T], Generic[_T]):
+class AsyncTortoiseFactory(factory.Factory[_T]):
     @classmethod
     async def _generate(cls, strategy, params):
         if cls._meta.abstract:
@@ -22,7 +23,7 @@ class AsyncTortoiseFactory(factory.Factory[_T], Generic[_T]):
         return await step.build()
 
     @classmethod
-    async def _create(cls, model_class: type[_T], *args: Any, **kwargs: Any) -> _T:
+    async def _create(cls, model_class: Type[_T], *args: Any, **kwargs: Any) -> _T:
         for key, value in kwargs.items():
             if inspect.isawaitable(value):
                 kwargs[key] = await value
@@ -33,7 +34,7 @@ class AsyncTortoiseFactory(factory.Factory[_T], Generic[_T]):
         return [await cls.create(**kwargs) for _ in range(size)]
 
     @classmethod
-    async def _build(cls, model_class: type[_T], *args: Any, **kwargs: Any):
+    async def _build(cls, model_class: Type[_T], *args: Any, **kwargs: Any):
         """Actually build an instance of the model_class.
 
         Customization point, will be called once the full set of args and kwargs

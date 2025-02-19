@@ -47,7 +47,7 @@ class ParentModel(Base):
 
     id = Column(Integer(), primary_key=True)
     name = Column(Unicode(20))
-    children = relationship('ChildModel', back_populates='parent')
+    children = relationship("ChildModel", back_populates="parent")
 
 
 class ChildModel(Base):
@@ -55,6 +55,6 @@ class ChildModel(Base):
 
     id = Column(Integer(), primary_key=True)
     name = Column(Unicode(20))
-    parent_id = Column(ForeignKey('ParentModelTable.id'))
-    parent = relationship('ParentModel')
+    parent_id = Column(ForeignKey("ParentModelTable.id"))
+    parent = relationship("ParentModel")
     parent_name = Column(Unicode(20))

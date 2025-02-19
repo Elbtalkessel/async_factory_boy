@@ -15,35 +15,35 @@ class TestSQLAlchemyPkSequence:
     @pytest.mark.asyncio
     async def test_pk_first(self):
         std = await StandardFactory.build()
-        assert 'foo1' == std.foo
+        assert "foo1" == std.foo
 
     @pytest.mark.asyncio
     async def test_pk_many(self):
         std1 = await StandardFactory.build()
         std2 = await StandardFactory.build()
-        assert 'foo1' == std1.foo
-        assert 'foo2' == std2.foo
+        assert "foo1" == std1.foo
+        assert "foo2" == std2.foo
 
     @pytest.mark.asyncio
     async def test_pk_creation(self):
         std1 = await StandardFactory.create()
-        assert 'foo1' == std1.foo
+        assert "foo1" == std1.foo
         assert 1 == std1.id
 
         StandardFactory.reset_sequence()
         std2 = await StandardFactory.create()
-        assert 'foo0' == std2.foo
+        assert "foo0" == std2.foo
         assert 0 == std2.id
 
     @pytest.mark.asyncio
     async def test_pk_force_value(self):
         std1 = await StandardFactory.create(id=10)
-        assert 'foo1' == std1.foo  # sequence and pk are unrelated
+        assert "foo1" == std1.foo  # sequence and pk are unrelated
         assert 10 == std1.id
 
         StandardFactory.reset_sequence()
         std2 = await StandardFactory.create()
-        assert 'foo0' == std2.foo  # Sequence doesn't care about pk
+        assert "foo0" == std2.foo  # Sequence doesn't care about pk
         assert 0 == std2.id
 
 
@@ -52,37 +52,37 @@ class TestSQLAlchemyNonIntegerPk:
     def setup(self):
         yield
         NonIntegerPkFactory.reset_sequence()
-    
+
     @pytest.mark.asyncio
     async def test_first(self):
         nonint = await NonIntegerPkFactory.build()
-        assert 'foo0' == nonint.id
+        assert "foo0" == nonint.id
 
     @pytest.mark.asyncio
     async def test_many(self):
         nonint1 = await NonIntegerPkFactory.build()
         nonint2 = await NonIntegerPkFactory.build()
 
-        assert 'foo0' == nonint1.id
-        assert 'foo1' == nonint2.id
+        assert "foo0" == nonint1.id
+        assert "foo1" == nonint2.id
 
     @pytest.mark.asyncio
     async def test_creation(self):
         nonint1 = await NonIntegerPkFactory.create()
-        assert 'foo0' == nonint1.id
+        assert "foo0" == nonint1.id
 
         NonIntegerPkFactory.reset_sequence()
         nonint2 = await NonIntegerPkFactory.build()
-        assert 'foo0' == nonint2.id
+        assert "foo0" == nonint2.id
 
     @pytest.mark.asyncio
     async def test_force_pk(self):
-        nonint1 = await NonIntegerPkFactory.create(id='foo10')
-        assert 'foo10' == nonint1.id
+        nonint1 = await NonIntegerPkFactory.create(id="foo10")
+        assert "foo10" == nonint1.id
 
         NonIntegerPkFactory.reset_sequence()
         nonint2 = await NonIntegerPkFactory.create()
-        assert 'foo0' == nonint2.id
+        assert "foo0" == nonint2.id
 
 
 class TestSQLAlchemyNoSession:
@@ -108,7 +108,7 @@ class TestNameConflict:
                 model = SpecialFieldModel
 
             id = factory.Sequence(lambda n: n)
-            session = ''
+            session = ""
 
         saved_child = await SpecialFieldWithSaveFactory()
         assert saved_child.session == ""
@@ -120,7 +120,7 @@ class TestNameConflict:
                 model = SpecialFieldModel
 
             id = factory.Sequence(lambda n: n)
-            session = ''
+            session = ""
 
         get_or_created_child = await SpecialFieldWithGetOrCreateFactory()
         assert get_or_created_child.session == ""

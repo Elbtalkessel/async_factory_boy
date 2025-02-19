@@ -1,11 +1,11 @@
 import asyncio
 import inspect
 from inspect import isawaitable
-from typing import Any, Optional, List, TypeVar
+from typing import Any, List, Optional, TypeVar
 
-from factory import BUILD_STRATEGY, errors, Factory, FactoryError
+from factory import BUILD_STRATEGY, Factory, FactoryError, errors
 from factory.alchemy import SQLAlchemyOptions
-from factory.builder import BuildStep, DeclarationSet, parse_declarations, Resolver, StepBuilder
+from factory.builder import BuildStep, DeclarationSet, Resolver, StepBuilder, parse_declarations
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 

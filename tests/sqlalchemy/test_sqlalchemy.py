@@ -4,16 +4,17 @@ import sqlalchemy
 from factory import FactoryError, Iterator
 
 from async_factory_boy.factory.sqlalchemy import AsyncSQLAlchemyFactory
+
 from .conftest import sc_session
 from .factory import (
     ChildModelWithSelfAttributeFactory,
     MultifieldModelFactory,
     NonIntegerPkFactory,
     NoSessionFactory,
+    SessionGetterFactory,
     StandardFactory,
     WithGetOrCreateFieldFactory,
     WithMultipleGetOrCreateFieldsFactory,
-    SessionGetterFactory,
 )
 from .models import MultiFieldModel, SpecialFieldModel
 

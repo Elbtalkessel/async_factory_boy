@@ -1,8 +1,13 @@
 import factory
 
 from async_factory_boy.factory.sqlalchemy import AsyncSQLAlchemyFactory
+
 from . import models
 from .conftest import sc_session
+
+
+def get_scoped_session():
+    return sc_session
 
 
 class StandardFactory(AsyncSQLAlchemyFactory):
@@ -18,7 +23,7 @@ class SessionGetterFactory(AsyncSQLAlchemyFactory):
     class Meta:
         model = models.StandardModel
         sqlalchemy_session = None
-        sqlalchemy_session_factory = lambda: sc_session
+        sqlalchemy_session_factory = get_scoped_session
 
     id = factory.Sequence(lambda n: n)
     foo = factory.Sequence(lambda n: "foo%d" % n)
